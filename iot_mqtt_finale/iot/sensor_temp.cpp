@@ -26,7 +26,6 @@ int main() {
     std::cout << "Temperature sensor connected!" << std::endl;
     httplib::Client cli("http://localhost:8080");
 
-    // ČEKA PRVI CIKLUS ENVIRONMENT-A (1 sec stagger)
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
     while (true) {
@@ -89,7 +88,6 @@ int main() {
             std::cerr << "Temperature sensor: Failed after 3 retries, skipping cycle" << std::endl;
         }
 
-        // MAIN TIMING - 3 SEKUNDE (kao environment)
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
