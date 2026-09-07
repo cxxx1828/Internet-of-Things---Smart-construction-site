@@ -32,13 +32,12 @@ using namespace std;
 const unsigned short multicast_port = 1900;
 const char* multicast_address = "239.255.255.250";
 
-// Globalne varijable za MQTT logiku
+
 double last_temperature = 0.0;
 double last_heart_rate = 0.0;
 bool temp_received = false;
 bool heart_received = false;
 
-// Struktura za SSDP uređaje
 struct DeviceInfo {
     std::string id;
     std::string name;
@@ -49,7 +48,6 @@ struct DeviceInfo {
 int sockfd;
 std::unordered_map<std::string, DeviceInfo> connected_devices;
 
-// MQTT callback funkcija sa ispravnom logikom
 void on_message_callback(struct mosquitto* mosq, void* userdata, const struct mosquitto_message* message) {
     if (message->payloadlen) {
 
@@ -69,14 +67,12 @@ void on_message_callback(struct mosquitto* mosq, void* userdata, const struct mo
             heart_received = true;
         }
         
-        // ANALIZA SAMO KADA SU OBA SENZORA DOBJENA
         if (temp_received && heart_received) {
             
             std::cout << "=== SYSTEM STATE ANALYSIS ===" << std::endl;
             std::cout << "Temperature: " << last_temperature << " °C" << std::endl;
             std::cout << "Heart rate: " << last_heart_rate << " bpm" << std::endl;
             
-            // Proverava da li su senzori u alarmnom stanju
             bool temp_alarm = (last_temperature >= 38.5 || last_temperature <= 35.0);
             bool heart_alarm = (last_heart_rate >= 105.0 || last_heart_rate <= 45.0);
             
@@ -84,30 +80,25 @@ void on_message_callback(struct mosquitto* mosq, void* userdata, const struct mo
             std::cout << "Heart rate alarm: " << (heart_alarm ? "YES" : "NO") << std::endl;
             std::cout << std::endl;
             
-            // GLAVNA LOGIKA NA OSNOVU OBA SENZORA
             if (temp_alarm && heart_alarm) {
-                // OBA LOŠA - kritično stanje
                 std::cout << "CRITICAL: Both sensors alarming!" << std::endl;
                 mosquitto_publish(mosq, NULL, MACHINE_SHUTDOWN_TOPIC, strlen(COMMAND_ON), COMMAND_ON, 1, true);
                 mosquitto_publish(mosq, NULL, EMERGENCY_CALL_TOPIC, strlen(COMMAND_ON), COMMAND_ON, 1, true);
                 std::cout << "Published: Machine ON, Emergency ON" << std::endl;
                 
             } else if (temp_alarm && !heart_alarm) {
-                // TEMPERATURA LOŠA, PULS DOBAR
                 std::cout << "WARNING: Temperature alarm only" << std::endl;
                 mosquitto_publish(mosq, NULL, MACHINE_SHUTDOWN_TOPIC, strlen(COMMAND_ON), COMMAND_ON, 1, true);
                 mosquitto_publish(mosq, NULL, EMERGENCY_CALL_TOPIC, strlen(COMMAND_OFF), COMMAND_OFF, 1, true);
                 std::cout << "Published: Machine ON, Emergency OFF" << std::endl;
                 
             } else if (!temp_alarm && heart_alarm) {
-                // TEMPERATURA DOBRA, PULS LOŠ
                 std::cout << "CRITICAL: Heart rate alarm only" << std::endl;
                 mosquitto_publish(mosq, NULL, MACHINE_SHUTDOWN_TOPIC, strlen(COMMAND_ON), COMMAND_ON, 1, true);
                 mosquitto_publish(mosq, NULL, EMERGENCY_CALL_TOPIC, strlen(COMMAND_ON), COMMAND_ON, 1, true);
                 std::cout << "Published: Machine ON, Emergency ON" << std::endl;
                 
             } else {
-                // OBA DOBRA - sve normalno
                 std::cout << "NORMAL: All sensors within normal range" << std::endl;
                 mosquitto_publish(mosq, NULL, MACHINE_SHUTDOWN_TOPIC, strlen(COMMAND_OFF), COMMAND_OFF, 1, true);
                 mosquitto_publish(mosq, NULL, EMERGENCY_CALL_TOPIC, strlen(COMMAND_OFF), COMMAND_OFF, 1, true);
@@ -117,7 +108,6 @@ void on_message_callback(struct mosquitto* mosq, void* userdata, const struct mo
             std::cout << "===============================" << std::endl;
             std::cout << std::endl;
             
-            // RESETUJ FLAGOVE NAKON ANALIZE
             temp_received = false;
             heart_received = false;
             
@@ -134,7 +124,6 @@ void on_message_callback(struct mosquitto* mosq, void* userdata, const struct mo
 }
 
 void process_discovery_message(const std::string& message) {
-    // Parsiranje UUID iz poruke
     std::istringstream iss(message);
     std::string line;
     std::string uuid = "";
@@ -150,7 +139,6 @@ void process_discovery_message(const std::string& message) {
 
     if (uuid.empty()) return;
 
-    // Provera da li je uređaj već povezan
     auto it = connected_devices.find(uuid);
     if (it == connected_devices.end()) {
         std::cout << "Received DISCOVERY message from new device:" << std::endl;
@@ -189,7 +177,6 @@ int main(int argc, char* argv[]) {
     // Initialize mosquitto library
     mosquitto_lib_init();
 
-    // Create mosquitto client instance
     struct mosquitto* mosq = mosquitto_new("controller_client", true, NULL);
     if (!mosq) {
         std::cerr << "Error: Unable to create mosquitto client instance" << std::endl;
@@ -197,7 +184,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Connect to MQTT broker
     if (mosquitto_connect(mosq, MQTT_SERVER_ADDRESS, MQTT_SERVER_PORT, 60) != MOSQ_ERR_SUCCESS) {
         std::cerr << "Error: Unable to connect to MQTT broker" << std::endl;
         mosquitto_destroy(mosq);
@@ -207,7 +193,6 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Connected to MQTT broker" << std::endl;
 
-    // Subscribe to sensor topics
     mosquitto_subscribe(mosq, NULL, SENSORS, 1);
     std::cout << "Subscribed to " << SENSORS << " topic" << std::endl;
     std::cout << std::endl;
@@ -217,28 +202,23 @@ int main(int argc, char* argv[]) {
     std::cout << "- Commands sent only after receiving both sensors" << std::endl;
     std::cout << std::endl;
 
-    // Set callback function
     mosquitto_message_callback_set(mosq, on_message_callback);
 
-    // Create UDP socket for SSDP
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         std::cerr << "Socket creation failed" << std::endl;
         return 1;
     }
 
-    // Server address
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(multicast_port);
 
-    // Bind socket
     if (bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         std::cerr << "Bind failed" << std::endl;
         return 1;
     }
 
-    // Client address setup
     memset(&client_addr, 0, sizeof(client_addr));
     client_addr.sin_family = AF_INET;
     client_addr.sin_addr.s_addr = inet_addr(multicast_address);
@@ -246,7 +226,6 @@ int main(int argc, char* argv[]) {
     
     std::string response = "";
 
-    // Main loop
     while (true) {
         socklen_t server_len = sizeof(server_addr);
         int bytes_received = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&server_addr, &server_len);
@@ -258,7 +237,6 @@ int main(int argc, char* argv[]) {
         buffer[bytes_received] = '\0'; 
         std::string message(buffer);
 
-        // Process different SSDP message types
         if (message.find("M-SEARCH") != std::string::npos) {
             process_discovery_message(message);
             send_confirmation(sockfd, server_addr);
@@ -289,7 +267,6 @@ int main(int argc, char* argv[]) {
                 }
             }
         } else {
-            // JSON device info processing
             Json::CharReaderBuilder builder;
             Json::Value root;
             std::string errors;
@@ -314,7 +291,6 @@ int main(int argc, char* argv[]) {
             connected_devices[id].status = root["status"].asString();
         }
         
-        // MQTT processing
         mosquitto_loop(mosq, -1, 1);
     }
 
