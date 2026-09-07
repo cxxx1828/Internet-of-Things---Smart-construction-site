@@ -6,19 +6,19 @@
 #include <chrono>
 #include <sstream>
 
-const char *mqtt_host = "localhost"; //adresa brokera (gde se nalazi)
-const int mqtt_port = 1883; //vrata (port) na kojima broker sluša
+const char *mqtt_host = "localhost"; 
+const int mqtt_port = 1883; 
 const char *topic_heart_rate = "sensors/heart_rate";
 
 int main() {
     mosquitto_lib_init();
-    struct mosquitto *mosq = mosquitto_new("heart_rate_sensor", true, NULL); //true JER broker neće čuvati poruke / subscribertions kada se klijent disconnect-uje
+    struct mosquitto *mosq = mosquitto_new("heart_rate_sensor", true, NULL);
     if (!mosq) {
         std::cerr << "Error: Unable to initialize MQTT client.\n";
         return 1;
     }
 
-    if (mosquitto_connect(mosq, mqtt_host, mqtt_port, 60) != MOSQ_ERR_SUCCESS) { //ako mosquitto_new vrati NULL objekat nije kreiran
+    if (mosquitto_connect(mosq, mqtt_host, mqtt_port, 60) != MOSQ_ERR_SUCCESS) {
         std::cerr << "Error: Unable to connect to MQTT broker.\n";
         return 1;
     }
@@ -26,7 +26,6 @@ int main() {
     std::cout << "Heart rate sensor connected!" << std::endl;
     httplib::Client cli("http://localhost:8080");
 
-    // ČEKA PRVI CIKLUS ENVIRONMENT-A (2 sec stagger od temp sensora, DA SE NE SUDARE YK)
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
     while (true) {
@@ -89,7 +88,6 @@ int main() {
             std::cerr << "Heart rate sensor: Failed after 3 retries, skipping cycle" << std::endl;
         }
 
-        // MAIN TIMING - 3 SEKUNDE (kao environment)
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
