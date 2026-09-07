@@ -15,26 +15,21 @@
 #include "httplib.h"
 #include <sstream>
 
-// ssdp konfiguracija
 const unsigned short multicast_port = 1900;
 const char* multicast_address = "239.255.255.250";
 
-// mqtt konfiguracija
 const char *mqtt_host = "172.20.10.2";
 const int mqtt_port = 1883;
 const char *topic_temperature = "sensors/temperature";
 
-// da li je ctrl c kliknut
 volatile sig_atomic_t ctrl_c_received = 0;
 
-// f-ja za ctrl c
 void ctrl_c_handler(int signal) {
     if (signal == SIGINT) {
         ctrl_c_received = 1;
     }
 }
 
-// izgenerise id
 std::string generate_unique_id() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     int unique_id = std::rand() % 9000 + 1000; 
@@ -177,7 +172,6 @@ int main() {
 
     std::string id = generate_unique_id();
 
-    // inicijalizuje ssdp socket
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         std::cerr << "Socket creation failed" << std::endl;
         return 1;
@@ -196,7 +190,6 @@ int main() {
         return 1;
     }
 
-    // da li je kontroler otkrio
     bool controller_found = false;
 
     while (!controller_found) {
@@ -210,14 +203,12 @@ int main() {
         }
     }
 
-    //za Ctrl+C
     struct sigaction sig_int_handler;
     sig_int_handler.sa_handler = ctrl_c_handler;
     sigemptyset(&sig_int_handler.sa_mask);
     sig_int_handler.sa_flags = 0;
     sigaction(SIGINT, &sig_int_handler, nullptr);
 
-    // inicijalizuje mqtt
     mosquitto_lib_init();
     struct mosquitto *mosq = mosquitto_new("temperature_sensor", true, NULL);
     if (!mosq) {
@@ -233,10 +224,8 @@ int main() {
     std::cout << "Temperature sensor connected!" << std::endl;
     httplib::Client cli("http://172.20.10.2:8080");
 
-    // krece mqtt da publishuje na drugoj niti
     std::thread mqtt_thread(publish_temperature, mosq, std::ref(cli));
 
-    // glavna petlja za ssdp
     while (!ctrl_c_received) {
         send_notify(sockfd, server_addr, id);
         std::cout << "NOTIFY sent.\n" << std::endl;
@@ -250,7 +239,7 @@ int main() {
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
-    // ciscenje
+    
     send_byebye(sockfd, server_addr, id);
     mqtt_thread.join();
 
