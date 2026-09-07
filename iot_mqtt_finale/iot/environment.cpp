@@ -12,9 +12,8 @@
 
 using namespace std;
 
-// GLOBAL FLAG ZA GRACEFUL SHUTDOWN
-std::atomic<bool> keep_running{true}; //flag kontroliše da li petlja radi ili ne
-httplib::Server* global_server = nullptr; //pokazuje na HTTP server da ga zaustavimo kad stiže signal
+std::atomic<bool> keep_running{true};
+httplib::Server* global_server = nullptr; 
 
 struct EnvironmentState {
     double temperature;
@@ -25,7 +24,6 @@ struct EnvironmentState {
     int cycle_count;
 };
 
-// SIGNAL HANDLER ZA CTRL+C
 void signal_handler(int signal) {
     if (signal == SIGINT || signal == SIGTERM) {
         std::cout << std::endl;
@@ -34,12 +32,10 @@ void signal_handler(int signal) {
         
         keep_running = false;
         
-        // Stopuj HTTP server
         if (global_server) {
             global_server->stop();
         }
         
-        // Obriši JSON fajlove
         std::remove("construction_site.json");
         std::remove("construction_site.json.tmp");
         
@@ -56,7 +52,6 @@ void simulateEnvironment(EnvironmentState& state) {
     while (keep_running) {
         state.cycle_count++;
         
-        // TEMPERATURA - redom kroz vrednosti
         double temp_values[] = {34.5, 34.6, 34.7, 34.8, 34.9, 35.1, 35.2, 35.3, 35.4, 35.5,
                                 35.6, 35.7, 35.8, 35.9, 36.1, 36.2, 36.3, 36.4, 36.5, 36.6,
                                 36.7, 36.8, 36.9, 37.1, 37.2, 37.3, 37.4, 37.5, 37.6, 37.7,
@@ -67,7 +62,6 @@ void simulateEnvironment(EnvironmentState& state) {
         state.temperature = temp_values[temp_counter % temp_size];
         temp_counter++;
         
-        // PULS - redom kroz vrednosti  
         double heart_values[] = {40, 42, 43, 45, 46, 48, 49, 51, 52, 54, 55, 57, 58, 60, 61, 63, 64, 66, 67, 69,
                                 70, 72, 73, 75, 77, 78, 80, 81, 83, 84, 86, 88, 89, 91, 92, 94, 95, 97, 98, 100,
                                 101, 103, 104, 106, 107, 109, 111, 112, 114, 115, 117, 118, 120, 121, 123, 125, 126, 128,
@@ -78,7 +72,6 @@ void simulateEnvironment(EnvironmentState& state) {
         state.heart_rate = heart_values[heart_counter % heart_size];
         heart_counter++;
 
-        // LOGIKA ALARMA
         state.machine_shutdown_active = "OFF";
         state.emergency_call_active = "OFF";
 
@@ -94,14 +87,12 @@ void simulateEnvironment(EnvironmentState& state) {
             state.machine_shutdown_active = "ON";
         }
 
-        // GENERIŠ JSON FAJL - ATOMIC WRITE
         Json::Value root;
         root["temperature"] = state.temperature;
         root["heart_rate"] = state.heart_rate;
         root["machine_shutdown_active"] = state.machine_shutdown_active;
         root["emergency_call_active"] = state.emergency_call_active;
 
-        // SAFE FILE WRITE
         try {
             std::ofstream tempFile("construction_site.json.tmp");
             tempFile << root;
@@ -111,14 +102,12 @@ void simulateEnvironment(EnvironmentState& state) {
             std::cerr << "Warning: Could not write JSON file" << std::endl;
         }
         
-        // POBOLJŠAN ISPIS STANJA
         if (keep_running) {
             std::cout << std::endl;
             std::cout << "========================================" << std::endl;
             std::cout << "        ENVIRONMENT CYCLE #" << state.cycle_count << std::endl;
             std::cout << "========================================" << std::endl;
             
-            // Temperature status
             std::cout << "Temperature: " << std::fixed << std::setprecision(1) << state.temperature << " °C ";
             if (temp_alarm) {
                 std::cout << (state.temperature >= 38.5 ? "HIGH FEVER" : "HYPOTHERMIA");
@@ -127,7 +116,6 @@ void simulateEnvironment(EnvironmentState& state) {
             }
             std::cout << std::endl;
             
-            // Heart rate status  
             std::cout << "Heart rate: " << std::fixed << std::setprecision(0) << state.heart_rate << " bpm ";
             if (heart_alarm) {
                 std::cout << (state.heart_rate >= 105 ? "TACHYCARDIA" : "BRADYCARDIA");
@@ -138,7 +126,6 @@ void simulateEnvironment(EnvironmentState& state) {
             
             std::cout << "----------------------------------------" << std::endl;
             
-            // System status
             std::cout << "Machine shutdown: " << state.machine_shutdown_active;
             if (state.machine_shutdown_active == "ON") {
                 std::cout << "MACHINE STOPPED";
@@ -157,7 +144,6 @@ void simulateEnvironment(EnvironmentState& state) {
             
             std::cout << "========================================" << std::endl;
             
-            // Overall system status
             if (heart_alarm) {
                 std::cout << "CRITICAL: Heart rate emergency - Worker needs immediate help!" << std::endl;
             } else if (temp_alarm) {
@@ -169,7 +155,6 @@ void simulateEnvironment(EnvironmentState& state) {
             std::cout << std::endl;
         }
 
-        // MAIN TIMING - 3 SEKUNDE sa interrupt check
         for (int i = 0; i < 30 && keep_running; ++i) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -221,11 +206,9 @@ void startHttpServer(EnvironmentState& state) {
 }
 
 int main() {
-    // REGISTRUJ SIGNAL HANDLERS
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
     
-    // OBRIŠI STARE JSON FAJLOVE
     std::remove("construction_site.json");
     std::remove("construction_site.json.tmp");
     
@@ -242,7 +225,7 @@ int main() {
     
     simulation_thread.join();
     
-    // CLEANUP
+    
     std::remove("construction_site.json");
     std::remove("construction_site.json.tmp");
     
