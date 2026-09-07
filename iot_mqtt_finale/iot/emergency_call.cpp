@@ -3,21 +3,19 @@
 #include <jsoncpp/json/json.h>
 #include "httplib.h"
 
-const char *mqtt_host = "localhost";        //broker
-const int mqtt_port = 1883;                 //port na kom broker slusa
+const char *mqtt_host = "localhost";        
+const int mqtt_port = 1883;                 
 
 //topic_pump -> topic_emergency_call
-const char *topic_emergency_call = "actuators/emergency_call_module";   //topic na kom slusa poruke za modul
+const char *topic_emergency_call = "actuators/emergency_call_module";   
 
-//slusa mqtt poruke za emergency call modul i obavestava server
 
-//informise server da li je modul ukljucen ili iskljucen
 void notifyEnvironment(const std::string &state) {
 
     httplib::Client cli("http://localhost:8080");
     httplib::Params params;
 
-    params.emplace("emergency_call_module", state);                 //kolekcija parova kljuc - vrednost
+    params.emplace("emergency_call_module", state);                
     auto res = cli.Post("/update_relay_state", params);
     if (res && res->status == 200) {
         std::cout << std::endl;
@@ -28,7 +26,6 @@ void notifyEnvironment(const std::string &state) {
     }
 }
 
-//reaguje na poruke sa brokera i prosledjuje stanje modula http serveru
 void on_message(struct mosquitto *mosq, void *userdata, const struct mosquitto_message *message) {
     std::string payload(static_cast<char *>(message->payload), message->payloadlen);
      std::cout << std::endl;
