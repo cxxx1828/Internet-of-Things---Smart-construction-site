@@ -21,24 +21,19 @@ void simulateEnvironment(EnvironmentState& state) {
     int heart_counter = 0;
    
     while (true) {
-        // TEMPERATURA - redom kroz vrednosti
         double temp_values[] = {36.5, 37.0, 37.5, 38.0, 38.5, 39.0, 39.5, 40.0, 35.5, 35.0, 34.5};
         int temp_size = sizeof(temp_values) / sizeof(temp_values[0]);
         
         state.temperature = temp_values[temp_counter % temp_size];
         temp_counter++;
         
-        // PULS - redom kroz vrednosti  
         double heart_values[] = {75, 80, 85, 90, 95, 100, 105, 110, 115, 50, 45, 40};
         int heart_size = sizeof(heart_values) / sizeof(heart_values[0]);
         
         state.heart_rate = heart_values[heart_counter % heart_size];
         heart_counter++;
 
-        // state.temperature = 33.0 + (rand() % 801) / 100.0;  // 33.0 - 41.0°C
-        // state.heart_rate = 40 + (rand() % 76);              // 40 - 115 bpm
 
-        // LOGIKA ALARMA
         state.machine_shutdown_active = "OFF";
         state.emergency_call_active = "OFF";
 
@@ -51,7 +46,6 @@ void simulateEnvironment(EnvironmentState& state) {
             state.machine_shutdown_active = "ON";
         }
 
-        // GENERIŠ JSON FAJL - ATOMIC WRITE
         Json::Value root;
         root["temperature"] = state.temperature;
         root["heart_rate"] = state.heart_rate;
@@ -63,7 +57,6 @@ void simulateEnvironment(EnvironmentState& state) {
         tempFile.close();
         std::rename("construction_site.json.tmp", "construction_site.json");
         
-        // Print stanje
         std::cout << std::endl;
         std::cout << "*********************************" << std::endl;
         std::cout << "Temperature: " << state.temperature << " °C (step " << temp_counter << ")" << std::endl;
@@ -73,7 +66,6 @@ void simulateEnvironment(EnvironmentState& state) {
         std::cout << "*********************************" << std::endl;
         std::cout << std::endl;
 
-        // MAIN TIMING - 3 SEKUNDE
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 }
