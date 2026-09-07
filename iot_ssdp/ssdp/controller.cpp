@@ -45,7 +45,6 @@ void print_connected(std::unordered_map<std::string, DeviceInfo> connected_devic
         std::cout << "ID: " << entry.second.id << ", Name: " << entry.second.name << ", Status: "<< entry.second.status << std::endl;
     }
 
-    std::cout<< "********************************************************************************\n" <<std::endl;
 
 
 }
@@ -130,7 +129,6 @@ int main() {
                         
                         it->second.status = "Offline";
                         std::cout << "Device ID: " << it->first << " went Offline" << std::endl;
-                        std::cout<< "********************************************************************************\n" <<std::endl;
                         connected_devices.erase(it);
                     } else {
 
