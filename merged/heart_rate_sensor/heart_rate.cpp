@@ -15,26 +15,21 @@
 #include "httplib.h"
 #include <sstream>
 
-// SSDP Configuration
 const unsigned short multicast_port = 1900;
 const char* multicast_address = "239.255.255.250";
 
-// MQTT Configuration
 const char *mqtt_host = "172.20.10.2";
 const int mqtt_port = 1883;
 const char *topic_heart_rate = "sensors/heart_rate";
 
-// Variable to check if CTRL+C was pressed
 volatile sig_atomic_t ctrl_c_received = 0;
 
-// Function for CTRL+C signal
 void ctrl_c_handler(int signal) {
     if (signal == SIGINT) {
         ctrl_c_received = 1;
     }
 }
 
-// Function to generate a unique device ID
 std::string generate_unique_id() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
     int unique_id = std::rand() % 9000 + 1000; 
@@ -177,7 +172,6 @@ int main() {
 
     std::string id = generate_unique_id();
 
-    // Initialize SSDP socket
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         std::cerr << "Socket creation failed" << std::endl;
         return 1;
@@ -196,7 +190,6 @@ int main() {
         return 1;
     }
 
-    // Wait for controller discovery
     bool controller_found = false;
 
     while (!controller_found) {
