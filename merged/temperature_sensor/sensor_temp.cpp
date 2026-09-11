@@ -234,7 +234,6 @@ int main() {
 
         send_json_response(sockfd, server_addr, id);
         std::cout << "Device status sent.\n" << std::endl;
-        std::cout << "************************************" << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
