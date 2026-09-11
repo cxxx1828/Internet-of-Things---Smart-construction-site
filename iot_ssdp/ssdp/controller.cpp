@@ -119,10 +119,10 @@ int main() {
                 if (pos != std::string::npos) {
 
                     
-                    std::string id = line.substr(pos + 10); // Pomeraj za duzinu "USN: uuid:"
-                    id.erase(std::remove_if(id.begin(), id.end(), ::isspace), id.end()); // Uklanjanje potencijalnog whitespace-a
+                    std::string id = line.substr(pos + 10); 
+                    id.erase(std::remove_if(id.begin(), id.end(), ::isspace), id.end()); 
 
-                    std::cout << "Found UUID: " << id << "."<< std::endl; // Za debagovanje.
+                    std::cout << "Found UUID: " << id << "."<< std::endl; // for debug
 
                     auto it = connected_devices.find(id);
                     if (it != connected_devices.end()) {
