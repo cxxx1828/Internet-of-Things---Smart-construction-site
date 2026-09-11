@@ -57,7 +57,6 @@ void on_message_callback(struct mosquitto* mosq, void* userdata, const struct mo
         std::cout << "Payload: " << (char*)message->payload << std::endl;
         std::cout << std::endl;
         
-        // Ažuriraj odgovarajući senzor
         if (strcmp(message->topic, TEMPERATURE_TOPIC) == 0) {
             last_temperature = std::stod((char*)message->payload);
             temp_received = true;
@@ -105,7 +104,6 @@ void on_message_callback(struct mosquitto* mosq, void* userdata, const struct mo
                 std::cout << "Published: Machine OFF, Emergency OFF" << std::endl;
             }
             
-            std::cout << "===============================" << std::endl;
             std::cout << std::endl;
             
             temp_received = false;
@@ -161,12 +159,10 @@ void send_confirmation(int sockfd, struct sockaddr_in client_addr) {
 }
 
 void print_connected(const std::unordered_map<std::string, DeviceInfo>& connected_devices){
-    std::cout<< "****************************\n" <<std::endl;
     std::cout << "\nConnected devices:" << std::endl;
     for (const auto& entry : connected_devices) {
         std::cout << "ID: " << entry.second.id << ", Name: " << entry.second.name << ", Status: "<< entry.second.status << std::endl;
     }
-    std::cout<< "****************************\n" <<std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -258,7 +254,6 @@ int main(int argc, char* argv[]) {
                     if (it != connected_devices.end()) {
                         it->second.status = "Offline";
                         std::cout << "Device ID: " << it->first << " went Offline" << std::endl;
-                        std::cout << "****************************\n" << std::endl;
                         connected_devices.erase(it);
                     } else {
                         std::cout << "Device with ID " << id << " not found in connected devices map." << std::endl;
