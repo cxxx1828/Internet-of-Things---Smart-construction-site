@@ -104,9 +104,7 @@ void simulateEnvironment(EnvironmentState& state) {
         
         if (keep_running) {
             std::cout << std::endl;
-            std::cout << "========================================" << std::endl;
             std::cout << "        ENVIRONMENT CYCLE #" << state.cycle_count << std::endl;
-            std::cout << "========================================" << std::endl;
             
             std::cout << "Temperature: " << std::fixed << std::setprecision(1) << state.temperature << " °C ";
             if (temp_alarm) {
@@ -142,7 +140,6 @@ void simulateEnvironment(EnvironmentState& state) {
             }
             std::cout << std::endl;
             
-            std::cout << "========================================" << std::endl;
             
             if (heart_alarm) {
                 std::cout << "CRITICAL: Heart rate emergency - Worker needs immediate help!" << std::endl;
