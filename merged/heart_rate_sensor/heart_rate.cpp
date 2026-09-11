@@ -203,14 +203,12 @@ int main() {
         }
     }
 
-    // Signal handler for Ctrl+C
     struct sigaction sig_int_handler;
     sig_int_handler.sa_handler = ctrl_c_handler;
     sigemptyset(&sig_int_handler.sa_mask);
     sig_int_handler.sa_flags = 0;
     sigaction(SIGINT, &sig_int_handler, nullptr);
 
-    // Initialize MQTT
     mosquitto_lib_init();
     struct mosquitto *mosq = mosquitto_new("heart_rate_sensor", true, NULL);
     if (!mosq) {
@@ -226,10 +224,8 @@ int main() {
     std::cout << "Heart rate sensor connected!" << std::endl;
     httplib::Client cli("http://172.20.10.2:8080");
 
-    // Start MQTT publishing in separate thread
     std::thread mqtt_thread(publish_heart_rate, mosq, std::ref(cli));
 
-    // Main SSDP loop
     while (!ctrl_c_received) {
         send_notify(sockfd, server_addr, id);
         std::cout << "NOTIFY sent.\n" << std::endl;
@@ -243,7 +239,6 @@ int main() {
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
 
-    // Cleanup
     send_byebye(sockfd, server_addr, id);
     mqtt_thread.join();
 
