@@ -195,7 +195,6 @@ int main() {
         send_json_response(sockfd, server_addr, id);
         std::cout << "Machine Shutdown Relay status sent.\n" << std::endl;
 
-        // Sleep for 3 seconds
         std::this_thread::sleep_for(std::chrono::seconds(3));
     }
     
