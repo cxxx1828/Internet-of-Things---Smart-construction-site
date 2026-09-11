@@ -58,12 +58,10 @@ void simulateEnvironment(EnvironmentState& state) {
         std::rename("construction_site.json.tmp", "construction_site.json");
         
         std::cout << std::endl;
-        std::cout << "*********************************" << std::endl;
         std::cout << "Temperature: " << state.temperature << " °C (step " << temp_counter << ")" << std::endl;
         std::cout << "Heart rate: " << state.heart_rate << " bpm (step " << heart_counter << ")" << std::endl;
         std::cout << "Machine shutdown: " << state.machine_shutdown_active << std::endl;
         std::cout << "Emergency call: " << state.emergency_call_active << std::endl;
-        std::cout << "*********************************" << std::endl;
         std::cout << std::endl;
 
         std::this_thread::sleep_for(std::chrono::seconds(3));
