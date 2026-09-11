@@ -172,7 +172,7 @@ int main() {
         std::cout << "M-SEARCH sent." << std::endl;
 
         bool flag_received = receive_confirmation_with_timeout(sockfd, server_addr, 5);
-        //std::cout << flag_received << std:: endl; // Za debagovanje.
+        //std::cout << flag_received << std:: endl; // for debug
 
         if (flag_received) {
             controller_found = true; // Kontroler je ponadjen, izlazimo iz petlje
@@ -199,7 +199,6 @@ int main() {
 
         send_json_response(sockfd, server_addr, id);
         std::cout << "Emergency Call Module status sent.\n" << std::endl;
-        std::cout << "************************************" << std::endl;
 
         // Sleep for 3 seconds
         std::this_thread::sleep_for(std::chrono::seconds(3));
