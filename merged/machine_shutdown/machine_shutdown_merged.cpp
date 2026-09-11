@@ -189,7 +189,6 @@ int main() {
         }
     }
 
-    //ctrl+c handler
     struct sigaction sig_int_handler;
     sig_int_handler.sa_handler = ctrl_c_handler;
     sigemptyset(&sig_int_handler.sa_mask);
@@ -223,7 +222,6 @@ int main() {
 
         send_json_response(sockfd, server_addr, id);
         std::cout << "MSR Device status sent.\n" << std::endl;
-        std::cout << "************************************" << std::endl;
 
         mosquitto_loop(mosq, -1, 1);
         std::this_thread::sleep_for(std::chrono::seconds(3));
