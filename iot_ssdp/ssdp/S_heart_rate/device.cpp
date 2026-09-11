@@ -163,7 +163,7 @@ int main() {
         return 1;
     }
     
-   bool controller_found = false; // Da li je kontroler pronadjen
+   bool controller_found = false; 
 
     while (!controller_found) {
         send_discovery(sockfd, server_addr);
